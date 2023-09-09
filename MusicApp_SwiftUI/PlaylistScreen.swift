@@ -16,23 +16,27 @@ struct PlaylistScreen: View {
         coverUrl: "lb12",
         tracks: Song.getTracks()
     )
+    @State private var isScrolled: Bool = false
     
     var body: some View {
         ZStack(alignment: .top) {
+            Image(playlist.coverUrl)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .padding(.horizontal, 60)
+                .padding(.top, isScrolled ? 0 : 20)
+
             ScrollView {
+                Spacer()
+                    .frame(height: 300)
+                
                 VStack(alignment: .leading, spacing: 0) {
-                    Image(playlist.coverUrl)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .padding(.horizontal, 50)
-                        .padding(.bottom, 20)
-                    
                     HStack {
                         Image(systemName: "arrow.down.circle.fill")
                             .imageScale(.large)
                         Image(systemName: "person.fill.badge.plus")
                             .imageScale(.large)
-                            
+                        
                         Spacer()
                         Image(systemName: "play.circle.fill")
                             .resizable()
@@ -56,7 +60,7 @@ struct PlaylistScreen: View {
                             Text(playlist.userName)
                                 .bold()
                                 .font(.title3)
-                                
+                            
                         }.frame(height: 30)
                     }.padding(.vertical)
                         .padding(.bottom, 10)
@@ -68,11 +72,34 @@ struct PlaylistScreen: View {
                         maxWidth: .infinity,
                         alignment: .leading
                     )
-                    .background(.background)
                 }.padding(.horizontal, 25)
-                    .padding(.top)
-            }
+                    .background(.background)
+                    .background(
+                        GeometryReader {
+                            Color.clear.preference(
+                                key: ViewOffsetKey.self,
+                                value: -$0.frame(
+                                    in: .named("scroll")).origin.y
+                                )
+                            }
+                    ).onPreferenceChange(ViewOffsetKey.self) { value in
+                        print("offset >> \(value)")
+                        if value > -300 && !isScrolled {
+                            isScrolled.toggle()
+                        } else if value <= -300 && isScrolled {
+                            isScrolled.toggle()
+                        }
+                    }
+            }.coordinateSpace(name: "scroll")
         }
+    }
+}
+
+struct ViewOffsetKey: PreferenceKey {
+    typealias Value = CGFloat
+    static var defaultValue = CGFloat.zero
+    static func reduce(value: inout Value, nextValue: () -> Value) {
+        value += nextValue()
     }
 }
 
