@@ -25,6 +25,7 @@ struct PlaylistScreen: View {
                 .aspectRatio(contentMode: .fit)
                 .padding(.horizontal, 60)
                 .padding(.top, isScrolled ? 0 : 20)
+                .animation(Animation.spring(), value: isScrolled ? 0 : 20)
 
             ScrollView {
                 Spacer()
